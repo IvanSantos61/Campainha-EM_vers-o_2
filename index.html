@@ -31,11 +31,14 @@
 </head>
 <body>
 
-    <div id="game-container">
-        <canvas id="canvasCabo" width="1920" height="1080"></canvas>
-        <div id="bolinha1" class="bolinha"></div>
-        <div id="bolinha2" class="bolinha"></div>
-    </div>
+   <div id="game-container">
+    <img id="derivacao_fase2" src="con_derivacao.png" class="terminal" style="top: 20%; left: 20%; display: none;">
+    <img id="derivacao_retorno" src="con_derivacao.png" class="terminal" style="top: 30%; left: 30%; display: none;">
+    
+    <canvas id="canvasCabo" width="1920" height="1080"></canvas>
+    <div id="bolinha1" class="bolinha"></div>
+    <div id="bolinha2" class="bolinha"></div>
+</div>
 
 <script>
   const cabos = [
@@ -62,7 +65,7 @@
         });
     }
 
-  function iniciarCabo() {
+function iniciarCabo() {
         if (indiceAtual >= cabos.length) {
             console.log("Todos os cabos foram finalizados.");
             return;
@@ -70,24 +73,32 @@
         
         const c = cabos[indiceAtual];
         
+        // --- Lógica nova: Exibir conectores de derivação ---
+        if (c.nome === "FASE_2") {
+            document.getElementById("derivacao_fase2").style.display = "block";
+        }
+        if (c.nome === "RETORNO") {
+            document.getElementById("derivacao_retorno").style.display = "block";
+        }
+        // ----------------------------------------------------
+        
         // Reset visual das bolinhas
         b1.style.display = "block";
-        b1.style.backgroundColor = c.cor; // Cor do cabo atual
+        b1.style.backgroundColor = c.cor;
         b1.style.left = c.b1.x + "%"; 
         b1.style.top = c.b1.y + "%";
         
-        b2.style.display = "none"; // Garante que a b2 só aparece após o clique em b1
-        b2.style.backgroundColor = c.cor; 
+        b2.style.display = "none";
+        b2.style.backgroundColor = c.cor;
         
         b1.onclick = () => {
-            b1.style.backgroundColor = "green"; // Feedback visual de clique
+            b1.style.backgroundColor = "green";
             b2.style.left = c.b2.x + "%"; 
             b2.style.top = c.b2.y + "%";
-            b2.style.display = "block"; // Libera a segunda bolinha
+            b2.style.display = "block";
         };
 
         b2.onclick = () => {
-            // Esconde as bolinhas imediatamente ao finalizar o clique
             b1.style.display = "none";
             b2.style.display = "none";
             animar(c);

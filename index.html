@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        body { margin: 0; background: #222; display: flex; justify-content: center; }
+        body { margin: 0; background: #000; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         
         #game-container {
             position: relative;
-            width: 100%;
-            max-width: 1200px; /* Largura base */
-            aspect-ratio: 1200 / 800; /* Ajuste para a proporção da sua imagem (L / A) */
-            background: url('ambiente.jpg') no-repeat center;
+            width: 90vw; /* Ajusta ao tamanho da tela mantendo proporção */
+            max-width: 1920px;
+            aspect-ratio: 1920 / 1080;
+            background: url('ambiente.jpg') no-repeat center center;
             background-size: contain;
-            margin-top: 20px;
         }
         
         canvas {
@@ -23,28 +22,22 @@
         }
 
         .bolinha {
-            width: 2%; /* Tamanho relativo */
-            aspect-ratio: 1/1;
-            border-radius: 50%;
-            position: absolute;
-            cursor: pointer;
-            display: none;
-            border: 2px solid white;
-            z-index: 10;
+            width: 2%; aspect-ratio: 1/1;
+            border-radius: 50%; position: absolute;
+            cursor: pointer; display: none;
+            border: 2px solid white; z-index: 10;
         }
     </style>
 </head>
 <body>
 
     <div id="game-container">
-        <canvas id="canvasCabo" width="1200" height="800"></canvas>
+        <canvas id="canvasCabo" width="1920" height="1080"></canvas>
         <div id="bolinha1" class="bolinha"></div>
         <div id="bolinha2" class="bolinha"></div>
     </div>
 
     <script>
-        // Use porcentagem para as coordenadas (0 a 100)
-        // Isso resolve o problema do zoom/tamanho da tela
         const cabos = [
             { nome: "FASE_REDE", total: 64, b1: {x: 10, y: 10}, b2: {x: 30, y: 30}, cor: "red" },
             { nome: "NEUTRO_REDE", total: 76, b1: {x: 15, y: 15}, b2: {x: 35, y: 35}, cor: "blue" },
@@ -54,70 +47,55 @@
         ];
 
         let indiceAtual = 0;
+        let cabosConcluidos = []; // Armazena objetos {nome, frameFinal}
         const canvas = document.getElementById('canvasCabo');
         const ctx = canvas.getContext('2d');
-        const b1 = document.getElementById('bolinha1');
-        const b2 = document.getElementById('bolinha2');
+        const b1 = document.getElementById('bolinha1'), b2 = document.getElementById('bolinha2');
+
+        function renderizarTudo() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            cabosConcluidos.forEach(c => {
+                let img = new Image();
+                img.src = `${c.nome}/quadro${c.total.toString().padStart(4, '0')}.png`;
+                ctx.drawImage(img, 0, 0);
+            });
+        }
 
         function iniciarCabo() {
             if (indiceAtual >= cabos.length) return;
             const c = cabos[indiceAtual];
-            
-            // Posicionamento relativo (em %)
-            b1.style.left = c.b1.x + "%";
-            b1.style.top = c.b1.y + "%";
-            b1.style.backgroundColor = c.cor;
-            b1.style.display = "block";
+            b1.style.left = c.b1.x + "%"; b1.style.top = c.b1.y + "%";
+            b1.style.backgroundColor = c.cor; b1.style.display = "block";
             
             b1.onclick = () => {
                 b1.style.backgroundColor = "green";
-                b2.style.left = c.b2.x + "%";
-                b2.style.top = c.b2.y + "%";
-                b2.style.backgroundColor = c.cor;
-                b2.style.display = "block";
+                b2.style.left = c.b2.x + "%"; b2.style.top = c.b2.y + "%";
+                b2.style.backgroundColor = c.cor; b2.style.display = "block";
             };
 
             b2.onclick = () => {
-                b1.style.display = "none";
-                b2.style.display = "none";
+                b1.style.display = "none"; b2.style.display = "none";
                 animar(c);
             };
         }
 
-        // Adicione esta lista para guardar os cabos finalizados
-let cabosConcluidos = [];
-
-function animar(c) {
-    let frame = 1;
-    let intervalo = setInterval(() => {
-        let img = new Image();
-        img.src = `${c.nome}/quadro${frame.toString().padStart(4, '0')}.png`;
-        
-        img.onload = () => {
-            // Limpa o canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // 1. Redesenha todos os cabos já finalizados
-            cabosConcluidos.forEach(cabo => {
-                let imgConcluido = new Image();
-                imgConcluido.src = `${cabo.nome}/quadro${cabo.total.toString().padStart(4, '0')}.png`;
-                ctx.drawImage(imgConcluido, 0, 0, canvas.width, canvas.height);
-            });
-            
-            // 2. Desenha o frame atual do cabo novo
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        };
-        
-        frame++;
-        if (frame > c.total) {
-            clearInterval(intervalo);
-            // Salva este cabo na lista de concluídos antes de avançar
-            cabosConcluidos.push(c); 
-            indiceAtual++;
-            iniciarCabo();
+        function animar(c) {
+            let frame = 1;
+            let intv = setInterval(() => {
+                let img = new Image();
+                img.src = `${c.nome}/quadro${frame.toString().padStart(4, '0')}.png`;
+                img.onload = () => {
+                    renderizarTudo(); // Desenha os anteriores
+                    ctx.drawImage(img, 0, 0); // Desenha o atual
+                };
+                if (++frame > c.total) {
+                    clearInterval(intv);
+                    cabosConcluidos.push(c);
+                    indiceAtual++;
+                    iniciarCabo();
+                }
+            }, 50);
         }
-    }, 50);
-}
 
         iniciarCabo();
     </script>
